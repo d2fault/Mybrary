@@ -1,138 +1,102 @@
 package com.d2fault.mybrary.view;
 
-import android.app.Activity;
-import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.view.View;
-import android.widget.Button;
-import android.widget.Toast;
-
-import com.android.volley.AuthFailureError;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
+import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
 import com.d2fault.mybrary.R;
-import com.google.zxing.integration.android.IntentIntegrator;
-import com.google.zxing.integration.android.IntentResult;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.HashMap;
-import java.util.Map;
-
-public class MainActivity extends AppCompatActivity {
-
-    private final Activity activity = this;
-    private Button buttonFind;
-    private String isbnStr;
-    private final String TAG = "MainActivity";
+public class MainActivity extends AppCompatActivity
+        implements NavigationView.OnNavigationItemSelectedListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        initView();
-        initListener();
-    }
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
-    private void initView() {
-        buttonFind = findViewById(R.id.buttonFind);
-    }
-
-    private void initListener() {
-        buttonFind.setOnClickListener(new View.OnClickListener() {
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                IntentIntegrator integrator = new IntentIntegrator(activity);
-                integrator.setDesiredBarcodeFormats(IntentIntegrator.ALL_CODE_TYPES);
-                integrator.setPrompt("Scan");
-                integrator.setCameraId(0);
-                integrator.setBeepEnabled(false);
-                integrator.setBarcodeImageEnabled(false);
-                integrator.initiateScan();
+            public void onClick(View view) {
+                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
             }
         });
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
     }
 
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
-        if (result != null) {
-            if (result.getContents() == null) {
-                Log.d(TAG, "Cancelled scan");
-                Toast.makeText(this, "Cancelled", Toast.LENGTH_SHORT).show();
-            } else {
-                isbnStr = result.getContents();
-                if (result.getFormatName().startsWith("EAN_13")) {
-                    Toast.makeText(this, isbnStr, Toast.LENGTH_SHORT).show();
-                    getBookInfo();
-                } else {
-                    Log.e(TAG, "ISBN ERROR: EAN_13 형식이 아닙니다.\n인식 바코드: " + isbnStr);
-                    Toast.makeText(this, "ISBN을 인식하지 못했습니다", Toast.LENGTH_SHORT).show();
-                }
-            }
+    @Override
+    public void onBackPressed() {
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
         } else {
-            super.onActivityResult(requestCode, resultCode, data);
+            super.onBackPressed();
         }
     }
 
-    private void getBookInfo() {
-        RequestQueue requestQueue = Volley.newRequestQueue(this);
-        String url = getString(R.string.get_book_info_url) + isbnStr + "&target=isbn";
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
 
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
-            new Response.Listener<JSONObject>() {
-                @Override
-                public void onResponse(JSONObject response) {
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
 
-                    try {
-                        JSONArray documentsJSONArray = response.getJSONArray("documents");
-                        // meta에 totalcount가 있는데 아마 사용하지 않을 것 같긴 하다
-                        JSONObject metaJSONObj = response.getJSONObject("meta");
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        }
 
-                        Log.d(TAG, "authors: " + documentsJSONArray.getJSONObject(0).getJSONArray("authors").get(0));
-                        Log.d(TAG, "contents: " + documentsJSONArray.getJSONObject(0).getString("contents"));
-                        Log.d(TAG, "datetime: " + documentsJSONArray.getJSONObject(0).getString("datetime"));
-                        Log.d(TAG, "isbn: " + documentsJSONArray.getJSONObject(0).getString("isbn"));
-                        Log.d(TAG, "price: " + documentsJSONArray.getJSONObject(0).getInt("price"));
-                        Log.d(TAG, "publisher: " + documentsJSONArray.getJSONObject(0).getString("publisher"));
-                        Log.d(TAG, "sale_price: " + documentsJSONArray.getJSONObject(0).getInt("sale_price"));
-                        Log.d(TAG, "status: " + documentsJSONArray.getJSONObject(0).getString("status"));
-                        Log.d(TAG, "thumbnail: " + documentsJSONArray.getJSONObject(0).getString("thumbnail"));
-                        Log.d(TAG, "title: " + documentsJSONArray.getJSONObject(0).getString("title"));
-                        Log.d(TAG, "translators: " + documentsJSONArray.getJSONObject(0).getJSONArray("translators").get(0));
-                        Log.d(TAG, "url: " + documentsJSONArray.getJSONObject(0).getString("url"));
+        return super.onOptionsItemSelected(item);
+    }
 
+    @SuppressWarnings("StatementWithEmptyBody")
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        // Handle navigation view item clicks here.
+        int id = item.getItemId();
 
-                        //documentsJSONArray.getJSONObject(0).getJSONObject("authors");
-                        Log.d(TAG, "jsonarray: " + documentsJSONArray.toString());
-                        Log.d(TAG, "jsonobject: " + metaJSONObj.toString());
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-            },
-            new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    Log.e(TAG, error.toString());
-                }
-            }){
-            @Override
-            public Map<String, String> getHeaders() throws AuthFailureError {
-                Map<String, String>  headers = new HashMap<String, String>();
-                headers.put("Authorization", getString(R.string.kakao_api_key));
+        if (id == R.id.nav_camera) {
+            // Handle the camera action
+        } else if (id == R.id.nav_gallery) {
 
-                return headers;
-            }
-        };
-        requestQueue.add(jsonObjectRequest);
+        } else if (id == R.id.nav_slideshow) {
+
+        } else if (id == R.id.nav_manage) {
+
+        } else if (id == R.id.nav_share) {
+
+        } else if (id == R.id.nav_send) {
+
+        }
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
     }
 }
