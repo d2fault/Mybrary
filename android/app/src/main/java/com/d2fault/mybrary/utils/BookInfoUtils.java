@@ -20,9 +20,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class BookInfoUtils {
-    private static final String TAG = "AddBookInfoFragment";
+    private static final String TAG = "[Mybrary] BookInfoUtils - ";
 
-    public static void getBookInfo(final Activity activity, String isbnStr) {
+
+    public static void getBookInfoFromISBN(final Activity activity, String isbnStr) {
         RequestQueue requestQueue = Volley.newRequestQueue(activity);
         String url = activity.getString(R.string.get_book_info_url) + isbnStr + "&target=isbn";
 
