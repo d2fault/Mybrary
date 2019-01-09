@@ -5,10 +5,11 @@
     android:layout_height="match_parent"
     tools:context=".view.AddBookInfoFragment">
 
-    <Button
-        android:id="@+id/buttonFind"
-        android:layout_width="match_parent"
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_find"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="바코드로 책 검색"/>
-
+        android:layout_gravity="bottom|end"
+        android:layout_margin="@dimen/fab_margin"
+        android:src="@android:drawable/ic_dialog_email" />
 </FrameLayout>
